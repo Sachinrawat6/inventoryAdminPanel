@@ -25,6 +25,7 @@ const PasswordPopup = ({ onSuccess, onClose }) => {
             onChange={(e) => setPassword(e.target.value)}
             className="w-full p-2 border rounded mb-2"
             placeholder="Password"
+            autoComplete='off'
             autoFocus
           />
           {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
