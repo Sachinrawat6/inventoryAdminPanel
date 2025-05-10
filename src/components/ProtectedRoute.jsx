@@ -1,24 +1,22 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import PasswordPopup from './PasswordPopup';
+import React from 'react';
+import { Navigate, Outlet } from 'react-router-dom';
 
-const ProtectedRoute = ({ children }) => {
-  const [showPopup, setShowPopup] = useState(true);
-  const navigate = useNavigate();
-
-  const handleSuccess = () => {
-    setShowPopup(false);
+const ProtectedRoute = () => {
+  const getToken = () => {
+    const cookies = document.cookie.split(';');
+    const tokenCookie = cookies.find(cookie => cookie.trim().startsWith('token='));
+    return tokenCookie ? tokenCookie.split('=')[1] : null;
   };
 
-  const handleClose = () => {
-    navigate('/');
-  };
+  const token = getToken();
 
-  if (showPopup) {
-    return <PasswordPopup onSuccess={handleSuccess} onClose={handleClose} />;
+  if (!token) {
+    // Redirect to login if no token
+    return <Navigate to="/login" replace />;
   }
 
-  return children;
+  // Render child routes if token exists
+  return <Outlet />;
 };
 
 export default ProtectedRoute;
