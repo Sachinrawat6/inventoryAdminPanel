@@ -19,16 +19,19 @@ const App = () => {
           <Navbar/>
           <Routes>
             {/* Public Routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            {/* <Route path="/login" element={<Login />} /> */}
+            {/* <Route path="/register" element={<Register />} /> */}
+             <Route path="/" element={<Products />} />
+              <Route path="/upload-products" element={<CSVUploader />} />
+              <Route path="/update-rack-space" element={<ProductCSVUpload />} />
             
             
-            {/* Protected Routes Group */}
+            {/* Protected Routes Group
             <Route element={<ProtectedRoute />}>
               <Route path="/" element={<Products />} />
               <Route path="/upload-products" element={<CSVUploader />} />
               <Route path="/update-rack-space" element={<ProductCSVUpload />} />
-            </Route>
+            </Route> */}
             
             {/* Catch-all route */}
             {/* <Route path="*" element={<Navigate to="/" replace />} /> */}
