@@ -20,7 +20,7 @@ const ProductCSVUpload = () => {
   const productMap = useMemo(() => {
     const map = new Map();
     data.forEach(product => {
-      const styleNumber = (product.style_code || '').toString().trim();
+      const styleNumber = (product.style_code || '')?.toString().trim();
       if (styleNumber) {
         map.set(styleNumber, product);
       }
@@ -153,8 +153,8 @@ const ProductCSVUpload = () => {
 
   const processSingleProduct = async (productData, rowNumber) => {
     try {
-      const itemSkuCode = (productData['Item SkuCode'] || '').trim();
-      const rackSpace = (productData['Rack Space'] || '').trim();
+      const itemSkuCode = (productData['Item SkuCode'] || '')?.trim();
+      const rackSpace = (productData['Rack Space'] || '')?.trim();
 
       if (!itemSkuCode) {
         return {

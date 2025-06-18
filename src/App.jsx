@@ -9,6 +9,8 @@ import Navbar from './components/Navbar';
 import Register from './components/Register';
 import Login from './components/Login';
 import AuthForm from './components/AuthForm';
+import Colors from './components/Colors';
+import UploadColor from './components/UploadColor';
 
 const App = () => {
   return (
@@ -16,13 +18,15 @@ const App = () => {
       <div className="flex">
         <Sidebar />
         <div className="flex-1 ml-65 p-6 min-h-screen">
-          <Navbar/>
+          {/* <Navbar/> */}
           <Routes>
             {/* Public Routes */}
             {/* <Route path="/login" element={<Login />} /> */}
             {/* <Route path="/register" element={<Register />} /> */}
              <Route path="/" element={<Products />} />
+              <Route path="/colors" element={<Colors />} />
               <Route path="/upload-products" element={<CSVUploader />} />
+              <Route path="/upload-color" element={<UploadColor />} />
               <Route path="/update-rack-space" element={<ProductCSVUpload />} />
             
             

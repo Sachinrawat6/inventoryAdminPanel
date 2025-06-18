@@ -120,8 +120,9 @@ const Products = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.style_id}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <span className={`inline-flex text-blue-400 items-center px-2.5 py-0.5 rounded-full text-xs font-medium   ${product.color.toLowerCase()==="red"?"bg-red-300":"bg-blue-100"}`}>
-                        {product.color}
+                         {product.color}
                       </span>
+                     
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₹{product.mrp}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.rack_space}</td>

@@ -1,12 +1,14 @@
 import { Link, useLocation } from "react-router-dom";
-import { Package, Upload, Pencil } from "lucide-react";
+import { Package, Upload, Pencil, CloudMoonRainIcon } from "lucide-react";
 
 export default function Sidebar() {
   const location = useLocation();
 
   const links = [
     { label: "Products", path: "/", icon: <Package className="w-5 h-5" /> },
+    { label: "Colors", path: "/colors", icon: <CloudMoonRainIcon className="w-5 h-5" /> },
     { label: "Upload Products", path: "/upload-products", icon: <Upload className="w-5 h-5" /> },
+    { label: "Upload Colors", path: "/upload-color", icon: <Upload className="w-5 h-5" /> },
     { label: "Update Rack Space", path: "/update-rack-space", icon: <Pencil className="w-5 h-5" /> },
   ];
 

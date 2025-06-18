@@ -1,71 +1,53 @@
-import React, { useState } from "react";
-import Papa from "papaparse";
-import axios from "axios";
+import React, { useState } from 'react'
+import Papa from 'papaparse'
+import axios from 'axios'
 
-const CSVUploader = () => {
-  const [csvData, setCsvData] = useState([]);
-  const [uploading, setUploading] = useState(false);
-  const [message, setMessage] = useState("");
-  const [progress, setProgress] = useState(0);
+const UploadColor = () => {
+    const [csvData, setCsvData] = useState([]);
+    const [uploading, setUploading] = useState(false);
+    const [message, setMessage] = useState("");
+    const [progress, setProgress] = useState(0);
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    setMessage("Processing CSV file...");
-    setCsvData([]);
-    
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => processParsedCSV(results.data),
-      error: (error) => {
-        setMessage(`❌ Error parsing CSV: ${error.message}`);
-      }
-    });
-  };
+    const handleFileChange = (e)=>{
+        const file = e.target.files[0];
+        if(!file) return
 
-  const processParsedCSV = async (rows) => {
+        setMessage("Processing CSV file...");
+        setCsvData([]);
+
+        Papa.parse(file,{
+            header:true,
+            skipEmptyLines:true,
+            complete:(results) => processParsedCSV(results.data),
+            error:(error) =>{
+                setMessage(`❌ Error parsing CSV: ${error.message}`);
+            }
+        })
+    }
+
+    const processParsedCSV = async (rows) => {
     try {
       setMessage("Filtering and validating data...");
       
-      const existingProducts = await axios.get("https://inventorybackend-m1z8.onrender.com/api/product");
+      const existingProducts = await axios.get("https://inventorybackend-m1z8.onrender.com/api/v1/colors/get-colors");
       const existingVanSet = new Set(
-        (existingProducts.data || []).map((product) => String(product.style_code))
+        (existingProducts.data.data || []).map((product) => String(product.style_code))
       );
   
       const seenVans = new Set();
       const filteredData = [];
-      const colorRegex = /^.*-(.*?)-.*$/;
   
       for (const row of rows) {
-        const brand = row["brand"];
-        let van = row["van"]?.toString();
-
-        if (van?.startsWith('8')) {
-            // Replace the first character with '1'
-            van = '1' + van?.slice(1);
-        } else if (van?.startsWith('5')) {
-            // Replace the first character with '3'
-            van = '3' + van.slice(1);
-        }
+        const style_code = row["Style Number"];
+        const color = row["Color"];
         
+
+        if (!style_code || seenVans.has(style_code) || existingVanSet.has(String(style_code))) continue;
   
-        if (!van || seenVans.has(van) || existingVanSet.has(String(van))) continue;
-  
-        seenVans.add(van);
-  
-        let color = "other";
-        const skuCode = row["seller sku code"];
-        const match = skuCode?.match(colorRegex);
-        if (match) color = match[1];
-  
+        seenVans.add(style_code);
         filteredData.push({
-          style_id: row["style id"],
-          style_name: row["style name"],
-          mrp: row["mrp"],
-          color,
-          style_code: van,
+        style_code,
+        color
         });
       }
   
@@ -78,57 +60,60 @@ const CSVUploader = () => {
       setMessage("❌ Failed to process CSV data");
     }
   };
-  
-  const handleUpload = async () => {
-    if (!csvData.length) return;
-    
-    setUploading(true);
-    setMessage("Starting upload...");
-    setProgress(0);
 
-    try {
-      const total = csvData.length;
-      let successful = 0;
-      
-      for (const [index, product] of csvData.entries()) {
-        try {
-          await axios.post("https://inventorybackend-m1z8.onrender.com/api/product", {
-            style_id: Number(product.style_id),
-            style_name: product.style_name,
-            color: product.color,
-            mrp: Number(product.mrp),
-            rack_space: product.rack_space,
-            style_code: Number(product.style_code),
-          });
-          successful++;
-        } catch (err) {
-          console.error(`Failed to upload product ${index + 1}:`, err);
-        }
-        
-        const currentProgress = Math.floor(((index + 1) / total) * 100);
-        setProgress(currentProgress);
-        setMessage(`Uploading... ${index + 1}/${total} products`);
+
+
+ const handleUpload = async () => {
+  if (!csvData.length) return;
+
+  setUploading(true);
+  setMessage("Starting upload...");
+  setProgress(0);
+
+  try {
+    const total = csvData.length;
+
+    // Send all colors in a single request
+    const response = await axios.post(
+      "https://inventorybackend-m1z8.onrender.com/api/v1/colors/add-color",
+      {
+        colors: csvData,
       }
-      
-      setMessage(`✅ Successfully uploaded ${successful}/${total} products`);
-      if (successful < total) {
-        setMessage(prev => prev + ` (${total - successful} failed)`);
-      }
-      setCsvData([]);
-    } catch (err) {
-      const errorMsg = err.response?.data?.msg || "Upload failed";
-      setMessage(`❌ ${errorMsg}`);
-    } finally {
-      setUploading(false);
+    );
+
+    const { added, warning } = response.data.data;
+
+    setProgress(100);
+    let successMessage = `✅ Successfully uploaded ${added.length}/${total} colors`;
+    if (warning) {
+      successMessage += `\n⚠️ ${warning}`;
     }
-  };
+
+    setMessage(successMessage);
+    setCsvData([]);
+  } catch (err) {
+    const errorMsg = err.response?.data?.msg || "❌ Upload failed";
+    setMessage(errorMsg);
+    console.error("Upload error:", err);
+  } finally {
+    setUploading(false);
+  }
+};
+
+
+
+
+
+
+
+
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-sm">
+      <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-sm">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Product CSV Upload</h2>
         <p className="text-gray-600 mt-1">
-          Upload a CSV file to add new products to the inventory
+          Upload a CSV file to add new Style and Color
         </p>
       </div>
 
@@ -305,14 +290,9 @@ const CSVUploader = () => {
                       Style Code
                     </th>
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Style Name
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Color
                     </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      MRP
-                    </th>
+                   
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -321,9 +301,7 @@ const CSVUploader = () => {
                       <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
                         {item.style_code}
                       </td>
-                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                        {item.style_name}
-                      </td>
+                     
                       <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
                         <span
                           className={`px-2 py-1 text-xs rounded-full ${
@@ -335,9 +313,7 @@ const CSVUploader = () => {
                           {item.color}
                         </span>
                       </td>
-                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                        ₹{item.mrp}
-                      </td>
+                      
                     </tr>
                   ))}
                 </tbody>
@@ -347,7 +323,7 @@ const CSVUploader = () => {
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default CSVUploader;
+export default UploadColor
